@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seasonal Animated Clock</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    position: relative;
+    transition: background 1s ease-in-out;
+    background: linear-gradient(270deg, #1e3c72, #2a5298); /* Default */
+    background-size: 400% 400%;
+    animation: gradientMove 15s ease infinite;
+}
+
+/* Smooth animated gradient */
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Clock container */
+.clock-container {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 50px 100px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 90px #ff00ff;
+    animation: neonGlow 2s infinite alternate;
+    position: relative;
+    z-index: 2;
+}
+
+/* Neon glow effect */
+@keyframes neonGlow {
+    0% { box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff; }
+    50% { box-shadow: 0 0 60px #ff00ff, 0 0 120px #ff00ff; }
+    100% { box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff; }
+}
+
+/* Time digits */
+.time {
+    font-size: 80px;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #ff00ff;
+    margin-bottom: 15px;
+}
+
+/* Date text */
+.date {
+    font-size: 24px;
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700;
+}
+
+/* Seasonal falling items */
+.falling-item {
+    position: absolute;
+    top: -50px;
+    pointer-events: none;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="clock-container">
+    <div class="time" id="time">00:00:00</div>
+    <div class="date" id="date">Loading date...</div>
+</div>
+
+<script>
+// --- CLOCK FUNCTIONALITY ---
+function updateClock() {
+    const now = new Date();
+    let h = now.getHours(),
+        m = now.getMinutes(),
+        s = now.getSeconds();
+    h = h < 10 ? "0" + h : h;
+    m = m < 10 ? "0" + m : m;
+    s = s < 10 ? "0" + s : s;
+    document.getElementById('time').textContent = `${h}:${m}:${s}`;
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    const dayName = days[now.getDay()],
+          monthName = months[now.getMonth()],
+          day = now.getDate(),
+          year = now.getFullYear();
+
+    document.getElementById('date').textContent = `${dayName}, ${monthName} ${day}, ${year}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// --- SEASON DETECTION ---
+function getSeason(month) {
+    if ([11, 0, 1].includes(month)) return "winter";   // Dec, Jan, Feb
+    if ([2, 3, 4].includes(month)) return "spring";   // Mar, Apr, May
+    if ([5, 6, 7].includes(month)) return "summer";   // Jun, Jul, Aug
+    return "autumn";                                  // Sep, Oct, Nov
+}
+
+// --- SEASONAL GRADIENTS ---
+const seasonGradients = {
+    winter: ['#83a4d4', '#b6fbff'], // Cool blue
+    spring: ['#f9d423', '#ff4e50'], // Pink/Yellow
+    summer: ['#ff9966', '#ff5e62'], // Orange/Yellow
+    autumn: ['#614385', '#516395']  // Warm brown
+};
+
+// --- SET BACKGROUND BASED ON SEASON ---
+function setSeasonalBackground() {
+    const month = new Date().getMonth();
+    const season = getSeason(month);
+    const colors = seasonGradients[season];
+    document.body.style.background = `linear-gradient(270deg, ${colors[0]}, ${colors[1]})`;
+    document.body.style.backgroundSize = "400% 400%";
+
+    createFallingItems(season);
+}
+
+// --- CREATE FALLING ITEMS ---
+function createFallingItems(season) {
+    const body = document.body;
+    const totalItems = 15; // Number of falling elements
+
+    for (let i = 0; i < totalItems; i++) {
+        const item = document.createElement("div");
+        item.classList.add("falling-item");
+
+        // Seasonal emojis
+        let emoji = "";
+        switch (season) {
+            case "winter": emoji = "❄"; break;
+            case "spring": emoji = "🌸"; break;
+            case "summer": emoji = "☀"; break;
+            case "autumn": emoji = "🍁"; break;
+        }
+
+        item.textContent = emoji;
+
+        // Random position, size, and animation speed
+        item.style.left = Math.random() * 100 + "vw";
+        item.style.fontSize = Math.random() * 20 + 20 + "px";
+        item.style.animationDuration = Math.random() * 5 + 5 + "s";
+
+        body.appendChild(item);
+
+        // Remove item after animation
+        setTimeout(() => {
+            item.remove();
+        }, 10000);
+    }
+
+    // Repeat every 2 seconds
+    setTimeout(() => createFallingItems(season), 2000);
+}
+
+// Initialize seasonal background
+setSeasonalBackground();
+</script>
+
+</body>
+</html>
